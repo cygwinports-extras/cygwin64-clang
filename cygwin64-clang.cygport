@@ -45,7 +45,7 @@ src_compile() {
 		--with-clang-resource-dir=../lib/clang/${TOOLCHAIN_TARGET}/${VERSION} \
 		--with-c-include-dirs=${gccdir}/include:${TOOLCHAIN_INCLUDEDIR}:${TOOLCHAIN_INCLUDEDIR}/w32api
 
-	cygmake clang-only REQUIRES_RTTI=1 ENABLE_DOCS=0
+	cygmake clang-only REQUIRES_RTTI=1
 	cygmake -C tools/clang/docs/tools man
 }
 
