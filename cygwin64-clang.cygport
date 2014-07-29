@@ -20,6 +20,8 @@ SRC_URI+=" http://www.llvm.org/releases/${VERSION}/cfe-${VERSION}.src.tar.gz"
 SRC_DIR="llvm-${VERSION}.src"
 PATCH_URI="3.4.2-cygwin-clang.patch"
 
+REQUIRES="cygwin64-gcc-core cygwin64-gcc-g++"
+
 CYGPORT_USE_UNSTABLE_API=1
 src_unpack_hook() {
 	rm -fr tools/clang
