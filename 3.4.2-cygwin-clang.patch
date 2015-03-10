@@ -22,7 +22,7 @@ Change the InitHeaderSearch hunk when rebuilding for gcc update
      DefineStd(Builder, "unix", Opts);
      if (Opts.CPlusPlus)
        Builder.defineMacro("_GNU_SOURCE");
-@@ -3370,6 +3371,32 @@ public:
+@@ -3370,6 +3371,35 @@ public:
  } // end anonymous namespace
  
  namespace {
@@ -43,6 +43,9 @@ Change the InitHeaderSearch hunk when rebuilding for gcc update
 +    if (Opts.CPlusPlus)
 +      Builder.defineMacro("_GNU_SOURCE");
 +  }
++  virtual BuiltinVaListKind getBuiltinVaListKind() const {
++    return TargetInfo::CharPtrBuiltinVaList;
++  }
 +  virtual CallingConvCheckResult checkCallingConvention(CallingConv CC) const {
 +    return (CC == CC_C ||
 +            CC == CC_IntelOclBicc ||
@@ -55,7 +58,7 @@ Change the InitHeaderSearch hunk when rebuilding for gcc update
  class DarwinX86_64TargetInfo : public DarwinTargetInfo<X86_64TargetInfo> {
  public:
    DarwinX86_64TargetInfo(const llvm::Triple &Triple)
-@@ -5820,6 +5847,8 @@ static TargetInfo *AllocateTarget(const
+@@ -5820,6 +5850,8 @@ static TargetInfo *AllocateTarget(const
        return new KFreeBSDTargetInfo<X86_64TargetInfo>(Triple);
      case llvm::Triple::Solaris:
        return new SolarisTargetInfo<X86_64TargetInfo>(Triple);
@@ -115,8 +118,8 @@ Change the InitHeaderSearch hunk when rebuilding for gcc update
 -    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", "i686-pc-cygwin", "4.3.4");
 -    // g++-4 / Cygwin-1.5
 -    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", "i686-pc-cygwin", "4.3.2");
-+    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", arch + "-pc-cygwin", "4.9.1");
-+    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", arch + "-pc-cygwin", "4.9.0");
++    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", arch + "-pc-cygwin", "4.9.3");
++    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", arch + "-pc-cygwin", "4.9.2");
 +    AddMinGWCPlusPlusIncludePaths("/usr/lib/gcc", arch + "-pc-cygwin", "4.8.3");
      break;
 +  }
