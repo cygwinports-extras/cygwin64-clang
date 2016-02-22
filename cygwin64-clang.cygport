@@ -1,12 +1,12 @@
 # IMPORTANT:
 # This package MUST be rebuilt for each version of cygwin64-gcc, and the
-# cygwin-clang patch fixed accordingly.
+# cygwin-includes patch fixed accordingly.
 
 TOOLCHAIN_TARGET="x86_64-pc-cygwin"
-inherit toolchain
+inherit toolchain cmake
 
 NAME="cygwin64-clang"
-VERSION=3.5.1
+VERSION=3.7.1
 RELEASE=1
 CATEGORY="Libs"
 SUMMARY="Clang cross-compiler for Cygwin x86_64"
@@ -15,18 +15,18 @@ independent optimizer, along with code generation support for many popular CPUs
 (as well as some less common ones!) These libraries are built around a well
 specified code representation known as the LLVM intermediate representation."
 HOMEPAGE="http://www.llvm.org/"
-SRC_URI="http://www.llvm.org/releases/${VERSION}/llvm-${VERSION}.src.tar.xz"
-SRC_URI+=" http://www.llvm.org/releases/${VERSION}/cfe-${VERSION}.src.tar.xz"
-SRC_DIR="llvm-${VERSION}.src"
-PATCH_URI="3.5.1-cygwin-clang.patch"
+SRC_URI="http://www.llvm.org/releases/${VERSION}/cfe-${VERSION}.src.tar.xz"
+SRC_DIR="cfe-${VERSION}.src"
+PATCH_URI="
+	3.7.1-cygwin-cxa-atexit.patch
+	3.7.1-cygwin-declspec.patch
+	3.7.1-cygwin-includes.patch
+	3.7.1-cygwin64.patch
+	3.7.1-docs-build.patch
+	3.7.1-resource-dir.patch
+"
 
 REQUIRES="cygwin64-gcc-core cygwin64-gcc-g++"
-
-CYGPORT_USE_UNSTABLE_API=1
-src_unpack_hook() {
-	rm -fr tools/clang
-	mv ../cfe-${VERSION}.src tools/clang
-}
 
 src_compile() {
 	# leave optimization to build system, fails to dlopen with -O2
@@ -36,25 +36,27 @@ src_compile() {
 	local gccdir=/usr/lib/gcc/${TOOLCHAIN_TARGET}/$(${TOOLCHAIN_TARGET}-gcc -dumpversion)
 
 	cd ${B}
-	cygconf --target=${TOOLCHAIN_TARGET} \
-		 --disable-assertions --enable-optimized --enable-debug-runtime \
-		--enable-debug-symbols --enable-targets=x86,cpp \
-		--enable-libffi --disable-shared --disable-embed-stdcxx \
-		--disable-polly --disable-libcpp --enable-bindings=none \
-		--with-gcc-toolchain=/usr --with-default-sysroot=${TOOLCHAIN_SYSROOT} \
-		--with-clang-resource-dir=../lib/clang/${TOOLCHAIN_TARGET}/${VERSION} \
-		--with-c-include-dirs=${gccdir}/include:${TOOLCHAIN_INCLUDEDIR}:${TOOLCHAIN_INCLUDEDIR}/w32api
+	cygcmake \
+		-DLLVM_CONFIG=/usr/bin/llvm-config \
+		-DLLVM_ENABLE_SPHINX=ON \
+		-DCLANG_ENABLE_ARCMT=OFF \
+		-DCLANG_ENABLE_STATIC_ANALYZER=OFF \
+		-DCLANG_BUILD_EXAMPLES=OFF \
+		-DCLANG_INCLUDE_DOCS=ON \
+		-DCLANG_INCLUDE_TESTS=OFF \
+		-DCLANG_RESOURCE_DIR=../lib/clang/${TOOLCHAIN_TARGET}/${VERSION} \
+		-DC_INCLUDE_DIRS=${gccdir}/include:${TOOLCHAIN_INCLUDEDIR}:${TOOLCHAIN_INCLUDEDIR}/w32api \
+		-DDEFAULT_SYSROOT=${TOOLCHAIN_SYSROOT} \
+		-DGCC_INSTALL_PREFIX=/usr
 
-	cygmake clang-only REQUIRES_RTTI=1
-	cygmake -C tools/clang/docs/tools man
+	cygmake clang-headers clang docs-clang-man
 }
 
 src_install() {
 	cd ${B}
-	cyginstall -C tools/clang/lib/Headers \
-		PROJ_headers=${D}/usr/lib/clang/${TOOLCHAIN_TARGET}/${VERSION}/include
+	cyginstall -C lib/Headers
 
-	newbin Release+Debug/bin/clang.exe ${TOOLCHAIN_TARGET}-clang.exe
+	newbin bin/clang.exe ${TOOLCHAIN_TARGET}-clang.exe
 	dosym ${TOOLCHAIN_TARGET}-clang.exe /usr/bin/${TOOLCHAIN_TARGET}-clang++
-	newman tools/clang/docs/tools/clang.1 ${TOOLCHAIN_TARGET}-clang.1
+	newman docs/man/clang.1 ${TOOLCHAIN_TARGET}-clang.1
 }
